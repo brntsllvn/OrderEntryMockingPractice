@@ -1,4 +1,7 @@
-﻿namespace OrderEntryMockingPractice.Models
+﻿using System;
+using System.Collections.Generic;
+
+namespace OrderEntryMockingPractice.Models
 {
     public class OrderItem
     {

@@ -1,0 +1,7 @@
+C:\Users\brents\src\OrderEntryMockingPractice\OrderEntryMockingPracticeTests\bin\Debug\OrderEntryMockingPracticeTests.dll
+C:\Users\brents\src\OrderEntryMockingPractice\OrderEntryMockingPracticeTests\bin\Debug\OrderEntryMockingPracticeTests.pdb
+C:\Users\brents\src\OrderEntryMockingPractice\OrderEntryMockingPracticeTests\bin\Debug\NSubstitute.dll
+C:\Users\brents\src\OrderEntryMockingPractice\OrderEntryMockingPracticeTests\bin\Debug\NSubstitute.xml
+C:\Users\brents\src\OrderEntryMockingPractice\OrderEntryMockingPracticeTests\obj\Debug\OrderEntryMockingPracticeTests.csprojResolveAssemblyReference.cache
+C:\Users\brents\src\OrderEntryMockingPractice\OrderEntryMockingPracticeTests\obj\Debug\OrderEntryMockingPracticeTests.dll
+C:\Users\brents\src\OrderEntryMockingPractice\OrderEntryMockingPracticeTests\obj\Debug\OrderEntryMockingPracticeTests.pdb
