@@ -1,5 +1,4 @@
-﻿using System;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using OrderEntryMockingPractice.Models;
 
 namespace OrderEntryMockingPracticeTests
@@ -8,29 +7,23 @@ namespace OrderEntryMockingPracticeTests
     public class OrderServiceTests
     {
         [Test]
-        public void OrderIsValidIfOrdersAreUniqueByProductSku()
+        public void OrderIsNotValidIdAnyProductsAreOutOfStock()
         {
             // Arrange
-            Product lagunitas = new Product();
-            lagunitas.Sku = "1234";
-
-            Product russianRiver = new Product();
-            russianRiver.Sku = "4321";
-
-            OrderItem favoriteIpa = new OrderItem();
-            favoriteIpa.Product = lagunitas;
-            favoriteIpa.Quantity = 2;
-
-            OrderItem secondFavoriteIpa = new OrderItem();
-            secondFavoriteIpa.Product = russianRiver;
-            secondFavoriteIpa.Quantity = 5;
-
-            Order beerOrder = new Order();
-            beerOrder.OrderItems.Add(favoriteIpa);
-            beerOrder.OrderItems.Add(secondFavoriteIpa);
+            var beerOrder = new Order();
+            beerOrder.OrderItems.Add(new OrderItem
+            {
+                Product = new Product { Sku = "1234" },
+                Quantity = 2
+            });
+            beerOrder.OrderItems.Add(new OrderItem
+            {
+                Product = new Product { Sku = "2345" },
+                Quantity = 5
+            });
 
             // Act
-            Boolean orderValid = beerOrder.IsValid();
+            var orderValid = beerOrder.OrderItemsAreUnique();
 
             // Assert
             Assert.That(orderValid, Is.True);
@@ -40,29 +33,86 @@ namespace OrderEntryMockingPracticeTests
         public void OrderIsNotValidIfOrdersAreNotUniqueByProductSku()
         {
             // Arrange
-            Product lagunitas = new Product();
-            lagunitas.Sku = "1234";
-
-            Product russianRiver = new Product();
-            russianRiver.Sku = "1234";
-
-            OrderItem favoriteIpa = new OrderItem();
-            favoriteIpa.Product = lagunitas;
-            favoriteIpa.Quantity = 2;
-
-            OrderItem secondFavoriteIpa = new OrderItem();
-            secondFavoriteIpa.Product = russianRiver;
-            secondFavoriteIpa.Quantity = 5;
-
-            Order beerOrder = new Order();
-            beerOrder.OrderItems.Add(favoriteIpa);
-            beerOrder.OrderItems.Add(secondFavoriteIpa);
+            var beerOrder = new Order();
+            beerOrder.OrderItems.Add(new OrderItem
+            {
+                Product = new Product {Sku = "1234"},
+                Quantity = 2
+            });
+            beerOrder.OrderItems.Add(new OrderItem
+            {
+                Product = new Product {Sku = "1234"},
+                Quantity = 5
+            });
 
             // Act
-            Boolean orderValid = beerOrder.IsValid();
+            var orderValid = beerOrder.OrderItemsAreUnique();
 
             // Assert
             Assert.That(orderValid, Is.False);
         }
+
+        //[Test]
+        //public void OrderIsValidIfAllProductsAreInStock()
+        //{
+        //    // Arrange
+        //    var lagunitas = new Product {Inventory = 3};
+
+        //    var russianRiver = new Product {Inventory = 3};
+
+        //    var favoriteIpa = new OrderItem
+        //    {
+        //        Product = lagunitas,
+        //        Quantity = 2
+        //    };
+
+        //    var secondFavoriteIpa = new OrderItem
+        //    {
+        //        Product = russianRiver,
+        //        Quantity = 2
+        //    };
+
+        //    var beerOrder = new Order();
+        //    beerOrder.OrderItems.Add(favoriteIpa);
+        //    beerOrder.OrderItems.Add(secondFavoriteIpa);
+
+        //    // Act
+        //    var orderValid = beerOrder.ProductsAreInStock();
+
+        //    // Assert
+        //    Assert.That(orderValid, Is.True);
+        //}
+
+        //[Test]
+        //public void OrderIsValidIfOrdersAreUniqueByProductSku()
+        //{
+        //    // Arrange
+        //    var lagunitas = new Product {Sku = "1234"};
+
+        //    var russianRiver = new Product {Sku = "4321"};
+
+        //    var favoriteIpa = new OrderItem
+        //    {
+        //        Product = lagunitas,
+        //        Quantity = 2
+        //    };
+
+        //    var secondFavoriteIpa = new OrderItem
+        //    {
+        //        Product = russianRiver,
+        //        Quantity = 5
+        //    };
+
+        //    var beerOrder = new Order();
+
+        //    beerOrder.OrderItems.Add(favoriteIpa);
+        //    beerOrder.OrderItems.Add(secondFavoriteIpa);
+
+        //    // Act
+        //    var orderValid = beerOrder.OrderItemsAreUnique();
+
+        //    // Assert
+        //    Assert.That(orderValid, Is.True);
+        //}
     }
 }

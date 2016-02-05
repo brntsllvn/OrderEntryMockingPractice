@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Permissions;
 using MoreLinq;
 
 namespace OrderEntryMockingPractice.Models
@@ -16,19 +17,28 @@ namespace OrderEntryMockingPractice.Models
 
         public List<OrderItem> OrderItems { get; set; }
 
-        public bool IsValid()
+        //public Order Add(string productSku, int quantity)
+        //{
+        //    this.OrderItems.Add(new OrderItem()
+        //    {
+        //        Product = new Product()
+        //        {
+        //            Sku = productSku
+        //        },
+        //        Quantity = quantity,
+        //    });
+
+        //    return this;
+        //}
+
+        public bool OrderItemsAreUnique()
         {
-            List<string> skuList = new List<string>();
+            var skuList = this.OrderItems
+                .Select(orderItem => orderItem.Product.Sku)
+                .ToList()
+                ;
 
-            foreach (OrderItem orderItem in this.OrderItems)
-            {
-                skuList.Add(orderItem.Product.Sku);
-            }
-
-            if (skuList.Distinct().Count() == skuList.Count())
-                return true;
-
-            return false;
+            return skuList.Distinct().Count() == skuList.Count();
         }
     }
 }
