@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Permissions;
 using MoreLinq;
+using OrderEntryMockingPractice.Services;
 
 namespace OrderEntryMockingPractice.Models
 {
@@ -17,20 +18,6 @@ namespace OrderEntryMockingPractice.Models
 
         public List<OrderItem> OrderItems { get; set; }
 
-        //public Order Add(string productSku, int quantity)
-        //{
-        //    this.OrderItems.Add(new OrderItem()
-        //    {
-        //        Product = new Product()
-        //        {
-        //            Sku = productSku
-        //        },
-        //        Quantity = quantity,
-        //    });
-
-        //    return this;
-        //}
-
         public bool OrderItemsAreUnique()
         {
             var skuList = this.OrderItems
@@ -39,6 +26,11 @@ namespace OrderEntryMockingPractice.Models
                 ;
 
             return skuList.Distinct().Count() == skuList.Count();
+        }
+
+        public bool AllProductsAreInStock()
+        {
+            return this.OrderItems.All(orderItem => orderItem.IsInStock());
         }
     }
 }

@@ -1,15 +1,25 @@
-﻿namespace OrderEntryMockingPractice.Models
+﻿using OrderEntryMockingPractice.Services;
+
+namespace OrderEntryMockingPractice.Models
 {
     public class Product
     {
-        public int? ProductId { get; set; }
+        private readonly IProductRepository _productRepository;
+
+        public Product(IProductRepository productRepository)
+        {
+            _productRepository = productRepository;
+        }
+
+    public int? ProductId { get; set; }
         public string Sku { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
         public decimal Price { get; set; }
-        // no
-        // public int Inventory { get; set; }
 
-
+        public bool IsInStock()
+        {
+            return _productRepository.IsInStock(this.Sku);
+        }
     }
 }

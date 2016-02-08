@@ -5,3 +5,10 @@ C:\Users\brents\src\OrderEntryMockingPractice\OrderEntryMockingPracticeTests\bin
 C:\Users\brents\src\OrderEntryMockingPractice\OrderEntryMockingPracticeTests\obj\Debug\OrderEntryMockingPracticeTests.csprojResolveAssemblyReference.cache
 C:\Users\brents\src\OrderEntryMockingPractice\OrderEntryMockingPracticeTests\obj\Debug\OrderEntryMockingPracticeTests.dll
 C:\Users\brents\src\OrderEntryMockingPractice\OrderEntryMockingPracticeTests\obj\Debug\OrderEntryMockingPracticeTests.pdb
+C:\Users\brents\src\OrderEntryMockingPractice\OrderEntryMockingPracticeTests\bin\Debug\FizzWare.NBuilder.dll
+C:\Users\brents\src\OrderEntryMockingPractice\OrderEntryMockingPracticeTests\bin\Debug\MoreLinq.dll
+C:\Users\brents\src\OrderEntryMockingPractice\OrderEntryMockingPracticeTests\bin\Debug\nunit.framework.dll
+C:\Users\brents\src\OrderEntryMockingPractice\OrderEntryMockingPracticeTests\bin\Debug\OrderEntryMockingPractice.dll
+C:\Users\brents\src\OrderEntryMockingPractice\OrderEntryMockingPracticeTests\bin\Debug\OrderEntryMockingPractice.pdb
+C:\Users\brents\src\OrderEntryMockingPractice\OrderEntryMockingPracticeTests\bin\Debug\MoreLinq.xml
+C:\Users\brents\src\OrderEntryMockingPractice\OrderEntryMockingPracticeTests\bin\Debug\nunit.framework.xml

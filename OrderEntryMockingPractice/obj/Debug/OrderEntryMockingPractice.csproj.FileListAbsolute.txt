@@ -3,3 +3,5 @@ C:\Users\brents\src\OrderEntryMockingPractice\OrderEntryMockingPractice\bin\Debu
 C:\Users\brents\src\OrderEntryMockingPractice\OrderEntryMockingPractice\obj\Debug\OrderEntryMockingPractice.csprojResolveAssemblyReference.cache
 C:\Users\brents\src\OrderEntryMockingPractice\OrderEntryMockingPractice\obj\Debug\OrderEntryMockingPractice.dll
 C:\Users\brents\src\OrderEntryMockingPractice\OrderEntryMockingPractice\obj\Debug\OrderEntryMockingPractice.pdb
+C:\Users\brents\src\OrderEntryMockingPractice\OrderEntryMockingPractice\bin\Debug\MoreLinq.dll
+C:\Users\brents\src\OrderEntryMockingPractice\OrderEntryMockingPractice\bin\Debug\MoreLinq.xml
