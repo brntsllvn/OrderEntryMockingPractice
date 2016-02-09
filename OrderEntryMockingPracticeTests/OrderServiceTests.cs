@@ -15,6 +15,7 @@ namespace OrderEntryMockingPracticeTests
         private IOrderFulfillmentService _orderFulfillmentService;
         private ICustomerRepository _customerRepository;
         private ITaxRateService _taxRateService;
+        private IEmailService _emailService;
 
         private OrderService _subject;
         private Customer _bestCustomer;
@@ -28,10 +29,12 @@ namespace OrderEntryMockingPracticeTests
             _orderFulfillmentService = Substitute.For<IOrderFulfillmentService>();
             _customerRepository = Substitute.For<ICustomerRepository>();
             _taxRateService = Substitute.For<ITaxRateService>();
+            _emailService = Substitute.For<IEmailService>();
 
             _subject = new OrderService(_orderFulfillmentService,
                 _customerRepository,
-                _taxRateService);
+                _taxRateService,
+                _emailService);
 
             _bestCustomer = new Customer
             {
@@ -53,7 +56,6 @@ namespace OrderEntryMockingPracticeTests
             };
             _customerRepository.Get(_bestCustomer.CustomerId.Value).Returns(_bestCustomer);
             _taxRateService.GetTaxEntries(_bestCustomer.PostalCode, _bestCustomer.Country).Returns(_listOfTaxEntries);
-
         }
 
         [Test]
@@ -253,7 +255,7 @@ namespace OrderEntryMockingPracticeTests
             var result = _subject.PlaceOrder(order);
 
             // Assert
-            Assert.That(false, Is.Not.False);
+            _emailService.Received().SendOrderConfirmationEmail(order.CustomerId, result.OrderId);
         }
 
 

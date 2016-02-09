@@ -11,13 +11,16 @@ namespace OrderEntryMockingPractice.Services
         private readonly IOrderFulfillmentService _orderFulfillmentService;
         private ICustomerRepository _customerRepository;
         private ITaxRateService _taxRateService;
+        private IEmailService _emailService;
 
         public OrderService(IOrderFulfillmentService orderFulfillmentService,
-            ICustomerRepository customerRepository, ITaxRateService taxRateService)
+            ICustomerRepository customerRepository, ITaxRateService taxRateService,
+            IEmailService emailService)
         {
             _orderFulfillmentService = orderFulfillmentService;
             _customerRepository = customerRepository;
             _taxRateService = taxRateService;
+            _emailService = emailService;
         }
 
         public OrderSummary PlaceOrder(Order order)
@@ -27,23 +30,15 @@ namespace OrderEntryMockingPractice.Services
             var fulfillment = _orderFulfillmentService.Fulfill(order);
             var customer = _customerRepository.Get(order.CustomerId);
 
-            Decimal netTotal = 0;
-            foreach (var orderItem in order.OrderItems)
-            {
-                netTotal += orderItem.Quantity*orderItem.Product.Price;
-            }
+            var netTotal = CalculateNetTotal(order);
 
             List<TaxEntry> listOfTaxEntries = (List<TaxEntry>) _taxRateService.GetTaxEntries(
                 customer.PostalCode,
                 customer.Country);
 
-            Decimal orderTotal = 0;
-            foreach (var taxEntry in listOfTaxEntries)
-            {
-                orderTotal += netTotal*taxEntry.Rate;
-            }
+            var orderTotal = CalculateOrderTotal(listOfTaxEntries, netTotal);
 
-            return new OrderSummary()
+            var orderSummary = new OrderSummary()
             {
                 OrderNumber = fulfillment.OrderNumber,
                 OrderId = fulfillment.OrderId,
@@ -51,6 +46,30 @@ namespace OrderEntryMockingPractice.Services
                 NetTotal = netTotal,
                 Total = orderTotal
             };
+
+            _emailService.SendOrderConfirmationEmail(order.CustomerId, orderSummary.OrderId);
+
+            return orderSummary;
+        }
+
+        private static decimal CalculateOrderTotal(List<TaxEntry> listOfTaxEntries, decimal netTotal)
+        {
+            Decimal orderTotal = 0;
+            foreach (var taxEntry in listOfTaxEntries)
+            {
+                orderTotal += netTotal*taxEntry.Rate;
+            }
+            return orderTotal;
+        }
+
+        private static decimal CalculateNetTotal(Order order)
+        {
+            Decimal netTotal = 0;
+            foreach (var orderItem in order.OrderItems)
+            {
+                netTotal += orderItem.Quantity*orderItem.Product.Price;
+            }
+            return netTotal;
         }
 
         public virtual void ValidateOrder(Order order)
