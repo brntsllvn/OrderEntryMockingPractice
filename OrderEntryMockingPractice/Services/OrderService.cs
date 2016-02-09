@@ -27,14 +27,29 @@ namespace OrderEntryMockingPractice.Services
             var fulfillment = _orderFulfillmentService.Fulfill(order);
             var customer = _customerRepository.Get(order.CustomerId);
 
+            Decimal netTotal = 0;
+            foreach (var orderItem in order.OrderItems)
+            {
+                netTotal += orderItem.Quantity*orderItem.Product.Price;
+            }
+
+            List<TaxEntry> listOfTaxEntries = (List<TaxEntry>) _taxRateService.GetTaxEntries(
+                customer.PostalCode,
+                customer.Country);
+
+            Decimal orderTotal = 0;
+            foreach (var taxEntry in listOfTaxEntries)
+            {
+                orderTotal += netTotal*taxEntry.Rate;
+            }
+
             return new OrderSummary()
             {
                 OrderNumber = fulfillment.OrderNumber,
                 OrderId = fulfillment.OrderId,
-                Taxes = _taxRateService.GetTaxEntries(
-                    customer.PostalCode,
-                    customer.Country),
-                NetTotal = 10 * 3 + 18 * 2
+                Taxes = listOfTaxEntries,
+                NetTotal = netTotal,
+                Total = orderTotal
             };
         }
 

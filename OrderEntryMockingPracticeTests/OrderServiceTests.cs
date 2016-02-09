@@ -217,24 +217,45 @@ namespace OrderEntryMockingPracticeTests
             Assert.That(orderSummary.OrderId, Is.EqualTo(_orderConfirmation.OrderId));
         }
 
-        //[Test]
-        //public void PlaceOrderReturnsCalculatedTaxTotals()
-        //{
-        //    // Arrange
-        //    var sixpack = new Product(_productRepo) { Sku="1234", Price = 10 };
-        //    var twelvepack = new Product(_productRepo) { Sku="4312", Price = 18 };
+        [Test]
+        public void PlaceOrderCalculatesAndReturnsNetTotal()
+        {
+            // Arrange
+            var order = GetValidOrderWithTwoItems();
 
-        //    var sixpackOrder = new OrderItem() { sixpack, 3};
-        //    var twelvepackOrder = new OrderItem() { twelvepack, 2};
+            // Act
+            var result = _subject.PlaceOrder(order);
 
-        //    var order = GivenAValidOrderWith(sixpack, twelvepack);
+            // Assert
+            Assert.That(result.NetTotal, Is.EqualTo(17*18*order.OrderItems.Count));
+        }
 
-        //    // Act
-        //    var orderSummary = _subject.PlaceOrder(order);
+        [Test]
+        public void PlaceOrderCalculatesAndReturnsOrderTotal()
+        {
+            // Arrange
+            var order = GetValidOrderWithTwoItems();
 
-        //    // Assert
-        //    Assert.That(orderSummary.NetTotal, Is.EqualTo(10*3+18*2));
-        //}
+            // Act
+            var result = _subject.PlaceOrder(order);
+
+            // Assert
+            Assert.That(result.Total, Is.InRange(428,429)); //428.4
+        }
+
+        [Test]
+        public void PlaceOrderSendsConfirmationEmailToCustomer()
+        {
+            // Arrange
+            var order = GetValidOrderWithTwoItems();
+
+            // Act
+            var result = _subject.PlaceOrder(order);
+
+            // Assert
+            Assert.That(false, Is.Not.False);
+        }
+
 
         private Order GetValidOrderWithTwoItems()
         {
@@ -243,12 +264,6 @@ namespace OrderEntryMockingPracticeTests
             _orderFulfillmentService.Fulfill(order).Returns(_orderConfirmation);
             return order;
         }
-
-        //private Order GivenAValidOrderWith(params OrderItem[] order)
-        //{
-        //    var myOrder = new OrderItem();
-        //    return myOrder;
-        //}
 
         private Order GivenAValidOrderWith(params Product[] products)
         {
@@ -264,6 +279,7 @@ namespace OrderEntryMockingPracticeTests
             var products = skus.Select(row => new Product(_productRepo)
             {
                 Sku = row,
+                Price = 18
             }).ToArray()
                 ;
 
@@ -277,7 +293,7 @@ namespace OrderEntryMockingPracticeTests
 
             foreach (var product in products)
             {
-                var orderItem = new OrderItem { Product = product };
+                var orderItem = new OrderItem { Product = product, Quantity = 17 };
                 order.OrderItems.Add(orderItem);
             }
 
