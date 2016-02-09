@@ -242,7 +242,7 @@ namespace OrderEntryMockingPracticeTests
             var result = _subject.PlaceOrder(order);
 
             // Assert
-            Assert.That(result.Total, Is.InRange(428,429)); //428.4
+            Assert.That(result.Total, Is.InRange(428.39999,428.40)); //428.4
         }
 
         [Test]
