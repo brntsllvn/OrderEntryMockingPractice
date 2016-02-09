@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Security;
 using NSubstitute;
 using NUnit.Framework;
 using OrderEntryMockingPractice.Models;
@@ -15,7 +16,7 @@ namespace OrderEntryMockingPracticeTests
         private ICustomerRepository _customerRepository;
         private ITaxRateService _taxRateService;
 
-        private OrderService _orderService;
+        private OrderService _subject;
         private Customer _bestCustomer;
         private List<TaxEntry> _listOfTaxEntries;
         private OrderConfirmation _orderConfirmation;
@@ -28,7 +29,7 @@ namespace OrderEntryMockingPracticeTests
             _customerRepository = Substitute.For<ICustomerRepository>();
             _taxRateService = Substitute.For<ITaxRateService>();
 
-            _orderService = new OrderService(_orderFulfillmentService,
+            _subject = new OrderService(_orderFulfillmentService,
                 _customerRepository,
                 _taxRateService);
 
@@ -50,44 +51,40 @@ namespace OrderEntryMockingPracticeTests
                 OrderId = 1234,
                 OrderNumber = "hello"
             };
+            _customerRepository.Get(_bestCustomer.CustomerId.Value).Returns(_bestCustomer);
+            _taxRateService.GetTaxEntries(_bestCustomer.PostalCode, _bestCustomer.Country).Returns(_listOfTaxEntries);
+
         }
 
         [Test]
         public void PlaceOrderDoesNotReturnNull()
         {
             // Arrange
-            _productRepo.IsInStock(Arg.Any<string>()).Returns(true);
-            _orderFulfillmentService.Fulfill(Arg.Any<Order>()).Returns(new OrderConfirmation());
 
-            var beerOrder = GetOrderFromSkus("1234", "4321");
-            beerOrder.CustomerId = 42;
-            _productRepo.IsInStock(Arg.Any<string>()).Returns(true);
-
-            _customerRepository.Get(_bestCustomer.CustomerId.Value).Returns(_bestCustomer);
-            _taxRateService.GetTaxEntries(_bestCustomer.PostalCode, _bestCustomer.Country).Returns(_listOfTaxEntries);
-            _orderFulfillmentService.Fulfill(beerOrder).Returns(_orderConfirmation);
+            var order = GetOrderFrom("1234", "4321");
+            AllProductsAreInStock();
+            _orderFulfillmentService.Fulfill(order).Returns(_orderConfirmation);
 
             // Act
-            var result = _orderService.PlaceOrder(beerOrder);
+            var result = _subject.PlaceOrder(order);
 
             // Assert
             Assert.That(result, Is.Not.Null);
+        }
+
+        private void AllProductsAreInStock()
+        {
+            _productRepo.IsInStock(Arg.Any<string>()).Returns(true);
         }
 
         [Test]
         public void PlaceOrderReturnsOrderSummaryIfAllProductsAreInStock()
         {
             // Arrange
-            var beerOrder = GetOrderFromSkus("1234", "4321");
-            beerOrder.CustomerId = 42;
-            _productRepo.IsInStock(Arg.Any<string>()).Returns(true);
-
-            _customerRepository.Get(_bestCustomer.CustomerId.Value).Returns(_bestCustomer);
-            _taxRateService.GetTaxEntries(_bestCustomer.PostalCode, _bestCustomer.Country).Returns(_listOfTaxEntries);
-            _orderFulfillmentService.Fulfill(beerOrder).Returns(new OrderConfirmation());
-
+            var order = GetValidOrderWithTwoItems();
+ 
             // Act
-            var result = _orderService.PlaceOrder(beerOrder);
+            var result = _subject.PlaceOrder(order);
 
             // Assert
             Assert.That(result, Is.Not.Null);
@@ -97,31 +94,26 @@ namespace OrderEntryMockingPracticeTests
         public void PlaceOrderReturnsOrderSummaryIfOrderItemsAreUniqueBySku()
         {
             // Arrange
-            var beerOrder = GetOrderFromSkus("1234", "4321");
-            beerOrder.CustomerId = 42;
-            _productRepo.IsInStock(Arg.Any<string>()).Returns(true);
-
-            _customerRepository.Get(_bestCustomer.CustomerId.Value).Returns(_bestCustomer);
-            _taxRateService.GetTaxEntries(_bestCustomer.PostalCode, _bestCustomer.Country).Returns(_listOfTaxEntries);
-            _orderFulfillmentService.Fulfill(beerOrder).Returns(new OrderConfirmation());
+            var order = GetValidOrderWithTwoItems();
 
             // Act
-            var result = _orderService.PlaceOrder(beerOrder);
+            var result = _subject.PlaceOrder(order);
 
             // Assert
             Assert.That(result, Is.Not.Null);
         }
 
+
         [Test]
         public void PlaceOrderThrowsIfOrderItemsAreNotUniqueBySku()
         {
             // Arrange
-            var beerOrder = GetOrderFromSkus("1234", "1234");
-            _productRepo.IsInStock(Arg.Any<string>()).Returns(true);
+            var order = GetOrderFrom("1234", "1234");
+            AllProductsAreInStock();
 
             // Act
             var e = Assert.Throws<InvalidOrderException>(() =>
-                _orderService.PlaceOrder(beerOrder));
+                _subject.PlaceOrder(order));
 
             // Assert
             Assert.That(e.Reasons, Has.Count.EqualTo(1));
@@ -134,12 +126,12 @@ namespace OrderEntryMockingPracticeTests
         public void PlaceOrderThrowsIfProductsAreNotInStock()
         {
             // Arrange
-            var beerOrder = GetOrderFromSkus("1234", "4321");
-            _productRepo.IsInStock(Arg.Any<string>()).Returns(false);
+            var order = GetOrderFrom("1234", "4321");
+            AllProductsAreNotInStock();
 
             // Act
             var e = Assert.Throws<InvalidOrderException>(() =>
-                _orderService.PlaceOrder(beerOrder));
+                _subject.PlaceOrder(order));
 
             // Assert
             Assert.That(e.Reasons, Has.Count.EqualTo(1));
@@ -148,39 +140,35 @@ namespace OrderEntryMockingPracticeTests
             Assert.That(reason, Is.EqualTo("Some products are not in stock"));
         }
 
+        private void AllProductsAreNotInStock()
+        {
+            _productRepo.IsInStock(Arg.Any<string>()).Returns(false);
+        }
+
         [TestCase("Some products are not in stock")]
         [TestCase("Order skus are not unique")]
         public void PlaceOrderThrowsIfProductsAreNotInStockAndNotUnique(string reason)
         {
             // Arrange
-            var beerOrder = GetOrderFromSkus("1234", "1234");
-            _productRepo.IsInStock(Arg.Any<string>()).Returns(false);
+            var order = GetOrderFrom("1234", "1234");
+            AllProductsAreNotInStock();
 
             // Act
             var e = Assert.Throws<InvalidOrderException>(() =>
-                _orderService.PlaceOrder(beerOrder));
+                _subject.PlaceOrder(order));
 
             // Assert
             Assert.That(e.Reasons, Has.Count.EqualTo(2));
             Assert.That(e.Reasons.Any(r => r.Equals(reason)));
         }
 
-
-
         [Test]
         public void OrderSummaryIsReturnedWithApplicableTaxes()
         {
             // Arrange
-            var beerOrder = GetOrderFromSkus("1234", "4321");
-            beerOrder.CustomerId = 42;
-            _productRepo.IsInStock(Arg.Any<string>()).Returns(true);
-
-            _customerRepository.Get(_bestCustomer.CustomerId.Value).Returns(_bestCustomer);
-            _taxRateService.GetTaxEntries(_bestCustomer.PostalCode, _bestCustomer.Country).Returns(_listOfTaxEntries);
-            _orderFulfillmentService.Fulfill(beerOrder).Returns(_orderConfirmation);
-
+            var order = GetValidOrderWithTwoItems();
             // Act
-            var orderSummary = _orderService.PlaceOrder(beerOrder);
+            var orderSummary = _subject.PlaceOrder(order);
 
             // Assert
             Assert.That(orderSummary.Taxes, Is.EquivalentTo(_listOfTaxEntries));
@@ -193,7 +181,7 @@ namespace OrderEntryMockingPracticeTests
 
             // Act
             var e = Assert.Throws<InvalidOrderException>(() =>
-                _orderService.PlaceOrder(null));
+                _subject.PlaceOrder(null));
 
             // Assert
             Assert.That(e.Reasons, Has.Count.EqualTo(1));
@@ -206,51 +194,94 @@ namespace OrderEntryMockingPracticeTests
         public void ValidOrderIsSubmittedToTheOrderFulfillmentService()
         {
             // Arrange
-            var beerOrder = GetOrderFromSkus("1234", "4321");
-            beerOrder.CustomerId = 42;
-            _productRepo.IsInStock(Arg.Any<string>()).Returns(true);
-
-            _customerRepository.Get(_bestCustomer.CustomerId.Value).Returns(_bestCustomer);
-            _taxRateService.GetTaxEntries(_bestCustomer.PostalCode, _bestCustomer.Country).Returns(_listOfTaxEntries);
-            _orderFulfillmentService.Fulfill(beerOrder).Returns(new OrderConfirmation());
+            var order = GetValidOrderWithTwoItems();
 
             // Act
-            _orderService.PlaceOrder(beerOrder);
+            _subject.PlaceOrder(order);
 
             // Assert
-            _orderFulfillmentService.Received().Fulfill(beerOrder);
+            _orderFulfillmentService.Received().Fulfill(order);
         }
 
         [Test]
         public void ValidOrderIsSubmittedWithOrderFulfillmentConfirmNum()
         {
             // Arrange
-            var beerOrder = GetOrderFromSkus("1234", "4321");
-            beerOrder.CustomerId = 42;
-            _productRepo.IsInStock(Arg.Any<string>()).Returns(true);
-
-            _customerRepository.Get(_bestCustomer.CustomerId.Value).Returns(_bestCustomer);
-            _taxRateService.GetTaxEntries(_bestCustomer.PostalCode, _bestCustomer.Country).Returns(_listOfTaxEntries);
-            _orderFulfillmentService.Fulfill(beerOrder).Returns(_orderConfirmation);
+            var order = GetValidOrderWithTwoItems();
 
             // Act
-            var orderSummary = _orderService.PlaceOrder(beerOrder);
+            var orderSummary = _subject.PlaceOrder(order);
 
             // Assert
             Assert.That(orderSummary.OrderNumber, Is.EqualTo(_orderConfirmation.OrderNumber));
             Assert.That(orderSummary.OrderId, Is.EqualTo(_orderConfirmation.OrderId));
         }
 
-        private Order GetOrderFromSkus(params string[] skus)
+        //[Test]
+        //public void PlaceOrderReturnsCalculatedTaxTotals()
+        //{
+        //    // Arrange
+        //    var sixpack = new Product(_productRepo) { Sku="1234", Price = 10 };
+        //    var twelvepack = new Product(_productRepo) { Sku="4312", Price = 18 };
+
+        //    var sixpackOrder = new OrderItem() { sixpack, 3};
+        //    var twelvepackOrder = new OrderItem() { twelvepack, 2};
+
+        //    var order = GivenAValidOrderWith(sixpack, twelvepack);
+
+        //    // Act
+        //    var orderSummary = _subject.PlaceOrder(order);
+
+        //    // Assert
+        //    Assert.That(orderSummary.NetTotal, Is.EqualTo(10*3+18*2));
+        //}
+
+        private Order GetValidOrderWithTwoItems()
+        {
+            var order = GetOrderFrom("1234", "4321");
+            AllProductsAreInStock();
+            _orderFulfillmentService.Fulfill(order).Returns(_orderConfirmation);
+            return order;
+        }
+
+        //private Order GivenAValidOrderWith(params OrderItem[] order)
+        //{
+        //    var myOrder = new OrderItem();
+        //    return myOrder;
+        //}
+
+        private Order GivenAValidOrderWith(params Product[] products)
+        {
+            var order = GetOrderFrom(products);
+            AllProductsAreInStock();
+            _orderFulfillmentService.Fulfill(order).Returns(_orderConfirmation);
+            return order;
+        }
+
+
+        private Order GetOrderFrom(params string[] skus)
+        {
+            var products = skus.Select(row => new Product(_productRepo)
+            {
+                Sku = row,
+            }).ToArray()
+                ;
+
+            return GetOrderFrom(products);
+
+        }
+
+        private Order GetOrderFrom(params Product[] products)
         {
             var order = new Order();
 
-            foreach (var sku in skus)
+            foreach (var product in products)
             {
-                var product = new Product(_productRepo) { Sku = sku };
                 var orderItem = new OrderItem { Product = product };
                 order.OrderItems.Add(orderItem);
             }
+
+            order.CustomerId = _bestCustomer.CustomerId.Value;
 
             return order;
         }

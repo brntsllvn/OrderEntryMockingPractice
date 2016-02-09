@@ -33,7 +33,8 @@ namespace OrderEntryMockingPractice.Services
                 OrderId = fulfillment.OrderId,
                 Taxes = _taxRateService.GetTaxEntries(
                     customer.PostalCode,
-                    customer.Country)
+                    customer.Country),
+                NetTotal = 10 * 3 + 18 * 2
             };
         }
 
