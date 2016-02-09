@@ -28,13 +28,12 @@ namespace OrderEntryMockingPractice.Services
             ValidateOrder(order);
 
             var fulfillment = _orderFulfillmentService.Fulfill(order);
+
             var customer = _customerRepository.Get(order.CustomerId);
 
             var netTotal = CalculateNetTotal(order);
 
-            List<TaxEntry> listOfTaxEntries = (List<TaxEntry>) _taxRateService.GetTaxEntries(
-                customer.PostalCode,
-                customer.Country);
+            var listOfTaxEntries = CreateListOfTaxEntries(customer);
 
             var orderTotal = CalculateOrderTotal(listOfTaxEntries, netTotal);
 
@@ -47,9 +46,22 @@ namespace OrderEntryMockingPractice.Services
                 Total = orderTotal
             };
 
-            _emailService.SendOrderConfirmationEmail(order.CustomerId, orderSummary.OrderId);
+            SendConfirmationEmail(order, orderSummary);
 
             return orderSummary;
+        }
+
+        private void SendConfirmationEmail(Order order, OrderSummary orderSummary)
+        {
+            _emailService.SendOrderConfirmationEmail(order.CustomerId, orderSummary.OrderId);
+        }
+
+        private List<TaxEntry> CreateListOfTaxEntries(Customer customer)
+        {
+            List<TaxEntry> listOfTaxEntries = (List<TaxEntry>) _taxRateService.GetTaxEntries(
+                customer.PostalCode,
+                customer.Country);
+            return listOfTaxEntries;
         }
 
         private static decimal CalculateOrderTotal(List<TaxEntry> listOfTaxEntries, decimal netTotal)
